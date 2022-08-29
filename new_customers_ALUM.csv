@@ -1,0 +1,41 @@
+Sold-To Party,Name 1,Material,Description,Delivery Date,Confirmed Quantity,Sales Unit,Plant,Ship-To Party,Ship-to party name 1,Document Date,Quantity in L,SH_Customer No,state
+21634,Visy Pulp & Paper (VP9) Pty Ltd,ALUSUL08-B,Alum Liquid Sulfate 8% Tonne,2015-05,37.0,TO,V127,20672,Visy Paper (Tumut),2015-04,28244.274809160306,21634,nsw
+58910,Hazelwood Power,ALUSUL08-B,Alum Liquid Sulfate 8% Tonne,2015-04,15.0,TO,V127,7741,Hazelwood Power Corp-Receiving,2015-04,11450.381679389313,58910,vic
+8102,Tas-Isle Trading Pty Ltd,ALUSUL08-1000,ALUMINIUM SULFATE LIQUID 1310 kgs IBC,2015-06,1.0,BOX,T101,8102,Tas-Isle Trading Pty Ltd,2015-06,1000.0,8102,tas
+59008,Visy Trading Singapore Pte Ltd,ALUSUL08-B,8% is as Al2O3 content,2015-07,37.0,TO,V319,20672,Visy Paper (Tumut),2015-07,28244.274809160306,,
+54929,John Holland Pty Ltd,ALUSUL08-B,Alum Liquid Sulfate 8% Tonne,2015-09,3.5,TO,N214,59688,Googong WRP,2015-09,2671.7557251908397,54929,nsw
+20387,Aquatec Maxcon Pty Ltd,ALUSUL08-B,Alum Liquid Sulfate 8% Tonne,2015-11,37.0,TO,N214,59872,Grahamstown WTP,2015-10,28244.274809160306,20387,qld
+59307,Ventia Australia Pty Ltd- Vic,ALUSUL08-B,Alum Liquid Sulfate 8% Tonne,2016-04,6.0,TO,V127,40412,Puckapunyal Water Treatment,2016-04,4580.152671755725,59307,vic
+9138,Formula Chemicals Pty Ltd,ALUSUL08-B,Alum Liquid Sulfate 8% Tonne,2016-06,13.0,TO,N214,9138,Formula Chemicals Pty Ltd,2016-06,9923.664122137405,9138,nsw
+60875,Dubbo Regional Council,ALUSUL08-B,Alum Liquid Sulfate 8% Tonne,2016-08,23.5,TO,N214,38780,Brennans Way WTP,2016-07,17938.93129770992,60875,nsw
+60836,Queanbeyan - Palerang Regional Coun,ALUSUL08-B,Alum Liquid Sulfate 8% Tonne,2016-08,2.6,TO,N214,59688,Googong WRP,2016-08,1984.7328244274809,60836,nsw
+10071,Water Corporation WA - Main account,ALUSUL08-B,Alum Liquid Sulfate 8% Tonne,2016-10,25.0,TO,S106,19399,Bolivar WWTP (Bulk),2016-10,19083.969465648854,10071,wa
+35456,Bathurst Regional Council,ALUSUL08-B,Alum Liquid Sulfate 8% Tonne,2016-10,25.0,TO,V127,18888,Bathurst Water Filtration Plant,2016-10,19083.969465648854,35456,nsw
+60876,Western Plains RC- Wellington,ALUSUL08-B,Alum Liquid Sulfate 8% Tonne,2016-10,9.0,TO,N214,38781,Geurie WTP,2016-10,6870.229007633588,60876,nsw
+61315,Edward River Council,ALUSUL08-B,Alum Liquid Sulfate 8% Tonne,2016-12,25.0,TO,V127,17721,Deniliquin WTP,2016-12,19083.969465648854,61315,nsw
+61373,MURRAY RIVER COUNCIL,ALUSUL08-B,Alum Liquid Sulfate 8% Tonne,2016-12,8.0,TO,V127,39038,Moama WFP,2016-12,6106.8702290076335,61373,nsw
+97376,BIS INDUSTRIES,ALUSUL08-1000,ALUMINIUM SULFATE LIQUID 1310 kgs IBC,2017-01,1.0,BOX,T101,97376,Cash Sale-Ixom AU-Credit Card Payme,2017-01,1000.0,97376,vic
+61529,OJI Fibre Solutions (Aust) Pty Ltd,ALUSUL08-1000,ALUMINIUM SULFATE LIQUID 1310 kgs IBC,2017-02,1.31,TO,V305,61529,OJI Fibre Solutions (Aust) Pty Ltd,2017-02,1000.0,61529,vic
+61599,H.W. Greenham & Sons Proprietary Li,ALUSUL08-B,Alum Liquid Sulfate 8% Tonne,2017-02,22.0,TO,V127,61599,H.W. Greenham & Sons Proprietary Li,2017-02,16793.893129770993,61599,vic
+3016,Griffith City Council,ALUSUL08-B,Alum Liquid Sulfate 8% Tonne,2017-03,25.0,TO,V127,53254,Griffith Sewerage Treatment Plant,2017-03,19083.969465648854,3016,nsw
+62081,M.G. Roberts Plumbing Pty. Limited,ALUSUL08-1000,ALUMINIUM SULFATE LIQUID 1310 kgs IBC,2017-06,2.0,TO,T101,62081,M.G. Roberts Plumbing Pty. Limited,2017-06,1526.7175572519084,62081,tas
+11764,Hempel (Wattyl) Australia Pty Ltd,ALUSUL08-1000,ALUMINIUM SULFATE LIQUID 1310 kgs IBC,2017-10,2.0,BOX,V305,57184,Valspar Paint (SA) Pty Ltd,2017-09,2000.0,11764,vic
+5823,Bega Valley Shire Council,ALUSUL08-B,Alum Liquid Sulfate 8% Tonne,2017-10,13.1,TO,N214,40905,Bega Sewerage Treatment Plant,2017-10,10000.0,5823,nsw
+42346,Rocky Lamattina & Sons Pty Ltd,ALUSUL08-1000NR,Liquid Alum Non Returnable IBC (1310 KG),2018-02,2.0,IBC,V305,42347,Rocky Lamattina & Sons Pty Ltd,2018-02,2000.0,42346,vic
+8438,USG Boral Building Products Pty Lim,ALUSUL08-1000NR,Liquid Alum Non Returnable IBC (1310 KG),2018-03,6.55,TO,V305,8438,USG Boral Building Products Pty Lim,2018-03,5000.0,8438,vic
+61968,Earthpower Technologies Sydney P/L,ALUSUL08-1000,ALUMINIUM SULFATE LIQUID 1310 kgs IBC,2018-05,1.31,TO,Q336,61966,EarthPower Technologies Sydney P/L,2018-05,1000.0,61968,nsw
+6064,Leeton Shire Council,ALUSUL08-B,Alum Liquid Sulfate 8% Tonne,2018-06,25.0,TO,V127,63236,Leeton Sewer Treatment Plant,2018-06,19083.969465648854,6064,nsw
+63414,Norske Skog Paper Mills (Albury),ALUSUL08-B,Alum Liquid Sulfate 8% Tonne,2018-08,22.0,TO,V127,7997,Norske Skog - Albury,2018-07,16793.893129770993,63414,nsw
+8911,Trility Pty Ltd,ALUSUL08-B,Alum Liquid Sulfate 8% Tonne,2018-08,26.0,TO,S106,37618,Victor Harbor WWTP,2018-08,19847.32824427481,8911,sa
+63449,FLOW SYSTEMS PTY LTD,ALUSUL08-B,Alum Liquid Sulfate 8% Tonne,2018-08,4.5,TO,N214,63484,Flow System - Huntlee,2018-08,3435.114503816794,63449,nsw
+55690,Tasmania Mines Limited,ALUSUL08-1000,ALUMINIUM SULFATE LIQUID 1310 kgs IBC,2018-09,1.31,TO,T101,55690,Tasmania Mines Limited,2018-09,1000.0,55690,tas
+7787,Trility Pty Ltd,ALUSUL08-B,Alum Liquid Sulfate 8% Tonne,2018-10,4.0,TO,V127,41145,Halls Gap WTP,2018-10,3053.4351145038167,7787,sa
+53567,CORE Water Management Solutions,ALUSUL08-1000,ALUMINIUM SULFATE LIQUID 1000L (1310 kg),2019-05,1.0,BOX,Q336,64476,Teys Australia (Beenleigh) Pty Ltd,2019-05,1000.0,53567,qld
+8913,Nowra Chemical Manufacturers Pty Lt,ALUSUL08-B,Alum Liquid Sulfate 8% Tonne,2019-06,26.0,TO,V127,58727,OWN CARTAGE Nowra Chemicals,2019-05,19847.32824427481,8913,nsw
+6857,Parkes Shire Council,ALUSUL08-B,Alum Liquid Sulfate 8% Tonne,2019-05,23.2,TO,V127,63803,Parkes STP,2019-05,17709.923664122136,6857,nsw
+56283,Aquapac Pty Ltd,ALUSUL08-B,Alum Liquid Sulfate 8% Tonne,2019-06,2.121,TO,Q322,56135,OWN CARTAGE - Aquapac,2019-06,1619.0839694656488,56283,nsw
+9044,CSR Building Products Ltd*,ALUSUL08-1000,ALUMINIUM SULFATE LIQUID 1000L (1310 kg),2019-10,1.31,TO,N214,54352,CSR Building Products Limited,2019-09,1000.0,9044,nsw
+64801,Leed Valoriza Joint Venture,ALUSUL08-B,Alum Liquid Sulfate 8% Tonne,2019-09,25.0,TO,S106,64953,NAIS Bolivar,2019-09,19083.969465648854,64801,sa
+61506,Rapid Supply Pty Ltd,ALUSUL08-1000,ALUMINIUM SULFATE LIQUID 1000L (1310 kg),2020-03,1.0,BOX,T101,61506,Rapid Supply Pty Ltd,2020-03,1000.0,61506,tas
+10267,Logan City Council,ALUSUL08-B,Alum Liquid Sulfate 8% Tonne,2020-06,24.124,TO,Q339,65749,Logan Council - Cedar Grove STP,2020-05,18415.267175572517,10267,qld
+54176,Ledonne Constructions Pty Limited,ALUSUL08-1000,ALUMINIUM SULFATE LIQUID 1000L (1310 kg),2020-07,2.0,IBC,Q336,65902,Cairncross Waste Facility,2020-07,2000.0,54176,nsw
