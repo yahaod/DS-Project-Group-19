@@ -1,0 +1,585 @@
+---
+title: "ds final"
+output: html_document
+---
+
+
+```{r}
+library(tidyverse)
+library(dlnm)
+library(ggplot2)
+library(mice)
+library(reshape2)
+library(splines)
+```
+
+
+```{r}
+#设置路径
+setwd('/Users/huangzhihan/Downloads')
+
+sos<-read.csv('./newdata/new_sos_after2015.csv') #载入share of search数据
+sale_alum<-read.csv('./newdata/ALUSUL08_month_sale.csv') #载入alum销量时间序列数据
+sale_pac10<-read.csv('./newdata/PAC10LB_month_sale.csv') #载入pac10销量时间序列数据
+sale_pac23<-read.csv('./newdata/PAC23_month_sale.csv') #载入pac23销量时间序列数据
+sale_mhl<-read.csv('./newdata/MHL_month_sale.csv') #载入mhl销量时间序列数据
+sale_sodhyp<-read.csv('./newdata/SODHYP_month_sale.csv') #载入sodhyp销量时间序列数据
+
+
+colnames(sos)[3:7]<-c('sos_alum','sos_pac10','sos_pac23','sos_sodhyp','sos_mhl')
+colnames(sale_alum)[2:3]<-c('date','sale')
+colnames(sale_pac10)[2:3]<-c('date','sale')
+colnames(sale_pac23)[2:3]<-c('date','sale')
+colnames(sale_mhl)[2:3]<-c('date','sale')
+colnames(sale_sodhyp)[2:3]<-c('date','sale')
+
+sale_alum[,c('date')]<-paste(sale_alum$date,'-01',sep='')
+sale_pac10[,c('date')]<-paste(sale_pac10$date,'-01',sep='')
+sale_pac23[,c('date')]<-paste(sale_pac23$date,'-01',sep='')
+sale_mhl[,c('date')]<-paste(sale_mhl$date,'-01',sep='')
+sale_sodhyp[,c('date')]<-paste(sale_sodhyp$date,'-01',sep='')
+
+sale_pac10<-rbind(sale_pac10[1:79,], c(0,'2016-08-01',0.001), sale_pac10[80:nrow(sale_pac10), ])
+sale_pac10<-rbind(sale_pac10[1:86,], c(0,'2017-03-01',0.001), sale_pac10[87:nrow(sale_pac10), ])
+sale_pac10<-rbind(sale_pac10[1:132,], c(0,'2021-01-01',0.001), sale_pac10[133:nrow(sale_pac10), ])
+sale_sodhyp<-rbind(sale_sodhyp[1:142,], c(0,'2021-08-01',0.001), sale_sodhyp[143:nrow(sale_sodhyp), ])
+sale_pac10$sale<-as.numeric(sale_pac10$sale)
+sale_sodhyp$sale<-as.numeric(sale_sodhyp$sale)
+
+sos$date<-as.Date(sos$date)
+sale_alum$date<-as.Date(sale_alum$date)
+sale_pac10$date<-as.Date(sale_pac10$date)
+sale_pac23$date<-as.Date(sale_pac23$date)
+sale_mhl$date<-as.Date(sale_mhl$date)
+sale_sodhyp$date<-as.Date(sale_sodhyp$date)
+
+data_alum<-merge(sos[,c('date','sos_alum')],sale_alum[,c('date','sale')])
+data_pac10<-merge(sos[,c('date','sos_pac10')],sale_pac10[,c('date','sale')])
+data_pac23<-merge(sos[,c('date','sos_pac23')],sale_pac23[,c('date','sale')])
+data_mhl<-merge(sos[,c('date','sos_mhl')],sale_mhl[,c('date','sale')])
+data_sodhyp<-merge(sos[,c('date','sos_sodhyp')],sale_sodhyp[,c('date','sale')])
+remove(sale_alum,sale_pac10,sale_pac23,sale_mhl,sale_sodhyp,sos)
+
+data_alum$time<-c(1:dim(data_alum)[1])
+data_pac10$time<-c(1:dim(data_pac10)[1])
+data_pac23$time<-c(1:dim(data_pac23)[1])
+data_mhl$time<-c(1:dim(data_mhl)[1])
+data_sodhyp$time<-c(1:dim(data_sodhyp)[1])
+```
+
+## Alum产品数据建模
+```{r}
+cbx_alum<-crossbasis(data_alum[,'sos_alum'],lag=12, argvar=list(fun="lin"),arglag=list(fun="poly",degree=3)) #非线性滞后矩阵
+model_alum<-glm(sale~ cbx_alum,family = quasipoisson(),data_alum) #建模
+pred_alum<-crosspred(cbx_alum, model_alum,at=c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1),bylag=1,cumul=TRUE) #建立预测模型
+```
+
+## Alum产品模型可视化
+
+### 画3D图
+```{r}
+plot(pred_alum,ticktype='detailed',border='#3366FF',
+     xlab='sos_alum',ylab="Lag (months)",zlab="Odd ratio",col='#99FFCC',
+     shade = 0.1,cex.lab=1.3,cex.axis=1.3,lwd=1,theta = 20, phi = 25,ltheta = -35)
+```
+
+### 画地形图
+```{r}
+plot(pred_alum, "contour", xlab='sos', key.title=title("OR"),cex.axis=2,
+     plot.axes={axis(1,cex.axis=2)
+       axis(2,cex.axis=2)},
+     key.axes = axis(4,cex.axis=2),
+     plot.title=title(xlab='Share of search',ylab="Lag (months)",cex.main=2,cex.lab=1.5))
+```
+
+### 画coeff图，横轴为滞后时间，纵轴为每增加0.1个unit的sos情况下，销量的比值比(Odds ratio)
+```{r}
+plot(pred_alum, "slices", var=0.1, col=3, ylab="Odd ratio", ci.arg=list(density=15,lwd=2),
+     main="Lag-response curve for a 0.1-unit increase in share of search")
+```
+
+### 保存0.1 unit下，sale随lag月数的变化的表格
+```{r}
+r<-as.data.frame(t(data.frame(rbind(round(pred_alum[["matRRfit"]][c('0.1'),],4),round(pred_alum[["matRRlow"]][c('0.1'),],3),
+                 round(pred_alum[["matRRhigh"]][c('0.1'),],3)),row.names = c('estimate','ci_low','ci_high'))))
+rd<-data.frame('estimate'=r$estimate,'ci'=paste('(',r$ci_low,'-',r$ci_high,')',sep = ''))
+write.csv(rd,file='./result/result_alum.csv')
+```
+
+### 保存lag为3月下，sale随sos各个unit增加变化的表格并绘制散点图
+```{r}
+r<-as.data.frame(t(data.frame(rbind(round(pred_alum[["matRRfit"]][,c('lag3')],4),round(pred_alum[["matRRlow"]][,c('lag3')],3),
+                                 round(pred_alum[["matRRhigh"]][,c('lag3')],3)),row.names = c('estimate','ci_low','ci_high'))))
+
+ggplot(data = r,aes(x=c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1),y = estimate)) + 
+  geom_point(size=2) + 
+  geom_errorbar(aes(ymin = ci_low,ymax = ci_high),width=0.01)+
+  geom_hline(aes(yintercept=1),linetype='dashed',col='black')+
+  xlab('Sos increase unit')+ylab('Estimate')+
+  ylim(min(r$ci_low)-0.1,max(r$ci_high)+0.1)+
+  theme_bw()
+
+rd<-data.frame('estimate'=r$estimate,'ci'=paste('(',r$ci_low,'-',r$ci_high,')',sep = ''))
+write.csv(rd,file='./result/lag3_alum.csv')
+```
+
+### alum产品线性分析
+```{r}
+mod_base<-lm(sale~sos_alum,data=data_alum)
+summary(mod_base)
+AIC(mod_base)
+
+mod_candidate<-list()
+formu0<-'log(sale)~sos_alum'
+k<-1
+for(i in 6:12) {
+  formu0<-paste0(formu0,'+lag(sos_alum,',i,')')
+  lag<-''
+  for (j in 1:7) {
+    lag<-paste0(lag,'+lag(log(sale),',j,')')
+    mod_candidate[[k]]<-lm(as.formula(paste0(formu0,'+',lag)),data=data_alum)
+    k<-k+1
+  }
+}
+model_selection<-data.frame(AIC=sapply(mod_candidate,AIC),BIC=sapply(mod_candidate,BIC),
+                            lag_sos=rep(6:12,each=7),lag_sale=rep(1:7,times=7))
+
+model_selection%>%
+  ggplot(aes(x=lag_sos,y=lag_sale,fill=AIC))+geom_tile()+
+  scale_fill_gradient(low='blue4',high='brown4')+
+  scale_x_continuous(breaks=6:12)+
+  scale_y_continuous(breaks=1:7)+
+  theme_bw()
+
+model_selection%>%
+  ggplot(aes(x=lag_sos,y=lag_sale,fill=BIC))+geom_tile()+
+  scale_fill_gradient(low='blue4',high='brown4')+
+  scale_x_continuous(breaks=6:12)+
+  scale_y_continuous(breaks=1:7)+
+  theme_bw()
+
+mod_best<-lm(log(sale)~sos_alum+lag(sos_alum, 6)+
+               lag(sos_alum, 7)+lag(sos_alum, 8)+
+               lag(log(sale),1)+lag(log(sale),2)+
+               lag(log(sale),3)+lag(log(sale),4),data=data_alum)
+
+summary(mod_best)
+
+tsdiag(arima(mod_best$residuals,order=c(0,0,0)))
+layout(matrix(1:4,nrow=2))
+plot(mod_best)
+```
+
+## Pac10产品数据建模
+```{r}
+cbx_pac10<-crossbasis(data_pac10[,'sos_pac10'],lag=12, argvar=list(fun="lin"),arglag=list(fun="poly",degree=3))
+model_pac10<-glm(as.numeric(sale)~ cbx_pac10+ns(time,1*1),family = quasipoisson(),data_pac10)
+pred_pac10<-crosspred(cbx_pac10, model_pac10,at=c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1),bylag=1,cumul=TRUE)
+```
+
+### 画3D图
+```{r}
+plot(pred_pac10,ticktype='detailed',border='#3366FF',
+     xlab='sos_pac10',ylab="Lag (months)",zlab="Odd ratio",col='#99FFCC',
+     shade = 0.1,cex.lab=1.3,cex.axis=1.3,lwd=1,theta = 20, phi = 25,ltheta = -35)
+```
+
+### 画地形图
+```{r}
+plot(pred_pac10, "contour", xlab='sos', key.title=title("OR"),cex.axis=2,
+     plot.axes={axis(1,cex.axis=2)
+       axis(2,cex.axis=2)},
+     key.axes = axis(4,cex.axis=2),
+     plot.title=title(xlab='Share of search',ylab="Lag (months)",cex.main=2,cex.lab=1.5))
+```
+
+### 画coeff图
+```{r}
+plot(pred_pac10, "slices", var=0.1, col=3, ylab="Odd ratio", ci.arg=list(density=15,lwd=2),
+     main="Lag-response curve for a 0.1-unit increase in share of search")
+```
+
+### 保存0.1 unit下，sale随lag月数的变化的表格
+```{r}
+r<-as.data.frame(t(data.frame(rbind(round(pred_pac10[["matRRfit"]][c('0.1'),],4),round(pred_pac10[["matRRlow"]][c('0.1'),],3),
+                                    round(pred_pac10[["matRRhigh"]][c('0.1'),],3)),row.names = c('estimate','ci_low','ci_high'))))
+rd<-data.frame('estimate'=r$estimate,'ci'=paste('(',r$ci_low,'-',r$ci_high,')',sep = ''))
+write.csv(rd,file='./result/result_pac10.csv')
+```
+
+### 保存lag为10月下，sale随sos各个unit增加变化的表格并绘制散点图
+```{r}
+r<-as.data.frame(t(data.frame(rbind(round(pred_pac10[["matRRfit"]][,c('lag10')],4),round(pred_pac10[["matRRlow"]][,c('lag10')],3),
+                                    round(pred_pac10[["matRRhigh"]][,c('lag10')],3)),row.names = c('estimate','ci_low','ci_high'))))
+
+ggplot(data = r,aes(x=c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1),y = estimate)) + 
+  geom_point(size=2) + 
+  geom_errorbar(aes(ymin = ci_low,ymax = ci_high),width=0.01)+
+  geom_hline(aes(yintercept=1),linetype='dashed',col='black')+
+  xlab('Sos increase unit')+ylab('Estimate')+
+  ylim(min(r$ci_low)-0.1,max(r$ci_high)+0.1)+
+  theme_bw()
+
+rd<-data.frame('estimate'=r$estimate,'ci'=paste('(',r$ci_low,'-',r$ci_high,')',sep = ''))
+write.csv(rd,file='./result/lag10_pac10.csv')
+```
+
+### pac10产品线性分析
+```{r}
+mod_base<-lm(sale~sos_pac10,data=data_pac10)
+summary(mod_base)
+AIC(mod_base)
+
+mod_candidate<-list()
+formu0<-'log(sale)~sos_pac10'
+k<-1
+for(i in 6:12) {
+  formu0<-paste0(formu0,'+lag(sos_pac10,',i,')')
+  lag<-''
+  for (j in 1:7) {
+    lag<-paste0(lag,'+lag(log(sale),',j,')')
+    mod_candidate[[k]]<-lm(as.formula(paste0(formu0,'+',lag)),data=data_pac10)
+    k<-k+1
+  }
+}
+model_selection<-data.frame(AIC=sapply(mod_candidate,AIC),BIC=sapply(mod_candidate,BIC),
+                            lag_sos=rep(6:12,each=7),lag_sale=rep(1:7,times=7))
+
+model_selection%>%
+  ggplot(aes(x=lag_sos,y=lag_sale,fill=AIC))+geom_tile()+
+  scale_fill_gradient(low='blue4',high='brown4')+
+  scale_x_continuous(breaks=6:12)+
+  scale_y_continuous(breaks=1:7)+
+  theme_bw()
+
+model_selection%>%
+  ggplot(aes(x=lag_sos,y=lag_sale,fill=BIC))+geom_tile()+
+  scale_fill_gradient(low='blue4',high='brown4')+
+  scale_x_continuous(breaks=6:12)+
+  scale_y_continuous(breaks=1:7)+
+  theme_bw()
+
+mod_best<-lm(log(sale)~sos_pac10+lag(sos_pac10, 6)+
+               lag(sos_pac10, 7)+lag(sos_pac10, 8)+
+               lag(log(sale),1)+lag(log(sale),2)+
+               lag(log(sale),3)+lag(log(sale),4),data=data_pac10)
+
+log(data_pac23$sale)
+
+class(data_alum$sale)
+class(data_pac10$sale)
+
+
+summary(mod_best)
+
+tsdiag(arima(mod_best$residuals,order=c(0,0,0)))
+layout(matrix(1:4,nrow=2))
+plot(mod_best)
+```
+
+
+## Pac23产品数据建模
+```{r}
+cbx_pac23<-crossbasis(data_pac23[,'sos_pac23'],lag=12, argvar=list(fun="lin"),arglag=list(fun="poly",degree=3))
+model_pac23<-glm(sale~ cbx_pac23+ns(time,1*1),family = quasipoisson(),data_pac23)
+pred_pac23<-crosspred(cbx_pac23, model_pac23,at=c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1),bylag=1,cumul=TRUE)
+```
+
+### 画3D图
+```{r}
+plot(pred_pac23,ticktype='detailed',border='#3366FF',
+     xlab='sos_pac23',ylab="Lag (months)",zlab="Odd ratio",col='#99FFCC',
+     shade = 0.1,cex.lab=1.3,cex.axis=1.3,lwd=1,theta = 20, phi = 25,ltheta = -35)
+```
+
+### 画地形图
+```{r}
+plot(pred_pac23, "contour", xlab='sos', key.title=title("OR"),cex.axis=2,
+     plot.axes={axis(1,cex.axis=2)
+       axis(2,cex.axis=2)},
+     key.axes = axis(4,cex.axis=2),
+     plot.title=title(xlab='Share of search',ylab="Lag (months)",cex.main=2,cex.lab=1.5))
+```
+
+### 画coeff图
+```{r}
+plot(pred_pac23, "slices", var=0.1, col=3, ylab="Odd ratio", ci.arg=list(density=15,lwd=2),
+     main="Lag-response curve for a 0.1-unit increase in share of search")
+```
+
+### 保存0.1 unit下，sale随lag月数的变化的表格
+```{r}
+r<-as.data.frame(t(data.frame(rbind(round(pred_pac23[["matRRfit"]][c('0.1'),],4),round(pred_pac23[["matRRlow"]][c('0.1'),],3),
+                                    round(pred_pac23[["matRRhigh"]][c('0.1'),],3)),row.names = c('estimate','ci_low','ci_high'))))
+rd<-data.frame('estimate'=r$estimate,'ci'=paste('(',r$ci_low,'-',r$ci_high,')',sep = ''))
+write.csv(rd,file='./result/result_pac23.csv')
+```
+
+### 保存lag为12月下，sale随sos各个unit增加变化的表格并绘制散点图
+```{r}
+r<-as.data.frame(t(data.frame(rbind(round(pred_pac23[["matRRfit"]][,c('lag12')],4),
+                              round(pred_pac23[["matRRlow"]][,c('lag12')],3),
+                              round(pred_pac23[["matRRhigh"]][,c('lag12')],3)),row.names = c('estimate','ci_low','ci_high'))))
+
+ggplot(data = r,aes(x=c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1),y = estimate)) + 
+  geom_point(size=2) + 
+  geom_errorbar(aes(ymin = ci_low,ymax = ci_high),width=0.01)+
+  geom_hline(aes(yintercept=1),linetype='dashed',col='black')+
+  xlab('Sos increase unit')+ylab('Estimate')+
+  ylim(min(r$ci_low)-0.1,max(r$ci_high)+0.1)+
+  theme_bw()
+
+rd<-data.frame('estimate'=r$estimate,'ci'=paste('(',r$ci_low,'-',r$ci_high,')',sep = ''))
+write.csv(rd,file='./result/lag12_pac23.csv')
+```
+
+### pac23产品线性分析
+```{r}
+mod_base<-lm(sale~sos_pac23,data=data_pac23)
+summary(mod_base)
+AIC(mod_base)
+
+mod_candidate<-list()
+formu0<-'log(sale)~sos_pac23'
+k<-1
+for(i in 6:12) {
+  formu0<-paste0(formu0,'+lag(sos_pac23,',i,')')
+  lag<-''
+  for (j in 1:7) {
+    lag<-paste0(lag,'+lag(log(sale),',j,')')
+    mod_candidate[[k]]<-lm(as.formula(paste0(formu0,'+',lag)),data=data_pac23)
+    k<-k+1
+  }
+}
+model_selection<-data.frame(AIC=sapply(mod_candidate,AIC),BIC=sapply(mod_candidate,BIC),
+                            lag_sos=rep(6:12,each=7),lag_sale=rep(1:7,times=7))
+
+model_selection%>%
+  ggplot(aes(x=lag_sos,y=lag_sale,fill=AIC))+geom_tile()+
+  scale_fill_gradient(low='blue4',high='brown4')+
+  scale_x_continuous(breaks=6:12)+
+  scale_y_continuous(breaks=1:7)+
+  theme_bw()
+
+model_selection%>%
+  ggplot(aes(x=lag_sos,y=lag_sale,fill=BIC))+geom_tile()+
+  scale_fill_gradient(low='blue4',high='brown4')+
+  scale_x_continuous(breaks=6:12)+
+  scale_y_continuous(breaks=1:7)+
+  theme_bw()
+
+mod_best<-lm(log(sale)~sos_pac23+lag(sos_pac23, 6)+
+               lag(sos_pac23, 7)+lag(sos_pac23, 8)+
+               lag(log(sale),1)+lag(log(sale),2)+
+               lag(log(sale),3)+lag(log(sale),4),data=data_pac23)
+
+summary(mod_best)
+
+tsdiag(arima(mod_best$residuals,order=c(0,0,0)))
+layout(matrix(1:4,nrow=2))
+plot(mod_best)
+```
+
+## mhl产品数据建模
+```{r}
+cbx_mhl<-crossbasis(data_mhl[,'sos_mhl'],lag=12, argvar=list(fun="lin"),arglag=list(fun="poly",degree=3))
+model_mhl<-glm(sale~ cbx_mhl+ns(time,1*1),family = quasipoisson(),data_mhl)
+pred_mhl<-crosspred(cbx_mhl, model_mhl,at=c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1),bylag=1,cumul=TRUE)
+```
+
+### 画3D图
+```{r}
+plot(pred_mhl,ticktype='detailed',border='#3366FF',
+     xlab='sos_mhl',ylab="Lag (months)",zlab="Odd ratio",col='#99FFCC',
+     shade = 0.1,cex.lab=1.3,cex.axis=1.3,lwd=1,theta = 20, phi = 25,ltheta = -35)
+```
+
+### 画地形图
+```{r}
+plot(pred_mhl, "contour", xlab='sos', key.title=title("OR"),cex.axis=2,
+     plot.axes={axis(1,cex.axis=2)
+       axis(2,cex.axis=2)},
+     key.axes = axis(4,cex.axis=2),
+     plot.title=title(xlab='Share of search',ylab="Lag (months)",cex.main=2,cex.lab=1.5))
+```
+
+### 画coeff图
+```{r}
+plot(pred_mhl, "slices", var=0.1, col=3, ylab="Odd ratio", ci.arg=list(density=15,lwd=2),
+     main="Lag-response curve for a 0.1-unit increase in share of search")
+```
+
+### 保存0.1 unit下，sale随lag月数的变化的表格
+```{r}
+r<-as.data.frame(t(data.frame(rbind(round(pred_mhl[["matRRfit"]][c('0.1'),],4),round(pred_mhl[["matRRlow"]][c('0.1'),],3),
+                                    round(pred_mhl[["matRRhigh"]][c('0.1'),],3)),row.names = c('estimate','ci_low','ci_high'))))
+rd<-data.frame('estimate'=r$estimate,'ci'=paste('(',r$ci_low,'-',r$ci_high,')',sep = ''))
+write.csv(rd,file='./result/result_mhl.csv')
+```
+
+### 保存lag为4月下，sale随sos各个unit增加变化的表格并绘制散点图
+```{r}
+r<-as.data.frame(t(data.frame(rbind(round(pred_mhl[["matRRfit"]][,c('lag4')],4),
+                              round(pred_mhl[["matRRlow"]][,c('lag4')],3),
+                              round(pred_mhl[["matRRhigh"]][,c('lag4')],3)),row.names = c('estimate','ci_low','ci_high'))))
+
+ggplot(data = r,aes(x=c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1),y = estimate)) + 
+  geom_point(size=2) + 
+  geom_errorbar(aes(ymin = ci_low,ymax = ci_high),width=0.01)+
+  geom_hline(aes(yintercept=1),linetype='dashed',col='black')+
+  xlab('Sos increase unit')+ylab('Estimate')+
+  ylim(min(r$ci_low)-0.1,max(r$ci_high)+0.1)+
+  theme_bw()
+
+rd<-data.frame('estimate'=r$estimate,'ci'=paste('(',r$ci_low,'-',r$ci_high,')',sep = ''))
+write.csv(rd,file='./result/lag4_mhl.csv')
+```
+
+### mhl产品线性分析
+```{r}
+mod_base<-lm(sale~sos_mhl,data=data_mhl)
+summary(mod_base)
+AIC(mod_base)
+
+mod_candidate<-list()
+formu0<-'log(sale)~sos_mhl'
+k<-1
+for(i in 6:12) {
+  formu0<-paste0(formu0,'+lag(sos_mhl,',i,')')
+  lag<-''
+  for (j in 1:7) {
+    lag<-paste0(lag,'+lag(log(sale),',j,')')
+    mod_candidate[[k]]<-lm(as.formula(paste0(formu0,'+',lag)),data=data_mhl)
+    k<-k+1
+  }
+}
+model_selection<-data.frame(AIC=sapply(mod_candidate,AIC),BIC=sapply(mod_candidate,BIC),
+                            lag_sos=rep(6:12,each=7),lag_sale=rep(1:7,times=7))
+
+model_selection%>%
+  ggplot(aes(x=lag_sos,y=lag_sale,fill=AIC))+geom_tile()+
+  scale_fill_gradient(low='blue4',high='brown4')+
+  scale_x_continuous(breaks=6:12)+
+  scale_y_continuous(breaks=1:7)+
+  theme_bw()
+
+model_selection%>%
+  ggplot(aes(x=lag_sos,y=lag_sale,fill=BIC))+geom_tile()+
+  scale_fill_gradient(low='blue4',high='brown4')+
+  scale_x_continuous(breaks=6:12)+
+  scale_y_continuous(breaks=1:7)+
+  theme_bw()
+
+mod_best<-lm(log(sale)~sos_mhl+lag(sos_mhl, 6)+
+               lag(sos_mhl, 7)+lag(sos_mhl, 8)+
+               lag(log(sale),1)+lag(log(sale),2)+
+               lag(log(sale),3)+lag(log(sale),4),data=data_mhl)
+
+summary(mod_best)
+
+tsdiag(arima(mod_best$residuals,order=c(0,0,0)))
+layout(matrix(1:4,nrow=2))
+plot(mod_best)
+```
+
+## sodhyp产品数据建模
+```{r}
+cbx_sodhyp<-crossbasis(data_sodhyp[,'sos_sodhyp'],lag=12, argvar=list(fun="lin"),arglag=list(fun="poly",degree=3))
+model_sodhyp<-glm(sale~ cbx_sodhyp+ns(time,1*1),family = quasipoisson(),data_sodhyp)
+pred_sodhyp<-crosspred(cbx_sodhyp, model_sodhyp,at=c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1),bylag=1,cumul=TRUE)
+```
+
+### 画3D图
+```{r}
+plot(pred_sodhyp,ticktype='detailed',border='#3366FF',
+     xlab='sos_sodhyp',ylab="Lag (months)",zlab="Odd ratio",col='#99FFCC',
+     shade = 0.1,cex.lab=1.3,cex.axis=1.3,lwd=1,theta = 20, phi = 25,ltheta = -35)
+```
+
+### 画地形图
+```{r}
+plot(pred_sodhyp, "contour", xlab='sos', key.title=title("OR"),cex.axis=2,
+     plot.axes={axis(1,cex.axis=2)
+       axis(2,cex.axis=2)},
+     key.axes = axis(4,cex.axis=2),
+     plot.title=title(xlab='Share of search',ylab="Lag (monts)",cex.main=2,cex.lab=1.5))
+```
+
+### 画coeff图
+```{r}
+plot(pred_sodhyp, "slices", var=0.1, col=3, ylab="Odd ratio", ci.arg=list(density=15,lwd=2),
+     main="Lag-response curve for a 0.1-unit increase in share of search")
+```
+
+### 保存0.1 unit下，sale随lag月数的变化的表格
+```{r}
+r<-as.data.frame(t(data.frame(rbind(round(pred_sodhyp[["matRRfit"]][c('0.1'),],4),round(pred_sodhyp[["matRRlow"]][c('0.1'),],3),
+                                    round(pred_sodhyp[["matRRhigh"]][c('0.1'),],3)),row.names = c('estimate','ci_low','ci_high'))))
+rd<-data.frame('estimate'=r$estimate,'ci'=paste('(',r$ci_low,'-',r$ci_high,')',sep = ''))
+write.csv(rd,file='./result/result_sodhyp.csv')
+```
+
+### 保存lag为8月下，sale随sos各个unit增加变化的表格并绘制散点图
+```{r}
+r<-as.data.frame(t(data.frame(rbind(round(pred_sodhyp[["matRRfit"]][,c('lag8')],4),
+                              round(pred_sodhyp[["matRRlow"]][,c('lag8')],3),
+                              round(pred_sodhyp[["matRRhigh"]][,c('lag8')],3)),row.names = c('estimate','ci_low','ci_high'))))
+
+ggplot(data = r,aes(x=c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1),y = estimate)) + 
+  geom_point(size=2) + 
+  geom_errorbar(aes(ymin = ci_low,ymax = ci_high),width=0.01)+
+  geom_hline(aes(yintercept=1),linetype='dashed',col='black')+
+  xlab('Sos increase unit')+ylab('Estimate')+
+  ylim(min(r$ci_low)-0.1,max(r$ci_high)+0.1)+
+  theme_bw()
+
+rd<-data.frame('estimate'=r$estimate,'ci'=paste('(',r$ci_low,'-',r$ci_high,')',sep = ''))
+write.csv(rd,file='./result/lag08_sodhyp.csv')
+```
+
+### sodhyp产品线性分析
+```{r}
+mod_base<-lm(sale~sos_sodhyp,data=data_sodhyp)
+summary(mod_base)
+AIC(mod_base)
+
+mod_candidate<-list()
+formu0<-'log(sale)~sos_sodhyp'
+k<-1
+for(i in 6:12) {
+  formu0<-paste0(formu0,'+lag(sos_sodhyp,',i,')')
+  lag<-''
+  for (j in 1:7) {
+    lag<-paste0(lag,'+lag(log(sale),',j,')')
+    mod_candidate[[k]]<-lm(as.formula(paste0(formu0,'+',lag)),data=data_sodhyp)
+    k<-k+1
+  }
+}
+model_selection<-data.frame(AIC=sapply(mod_candidate,AIC),BIC=sapply(mod_candidate,BIC),
+                            lag_sos=rep(6:12,each=7),lag_sale=rep(1:7,times=7))
+
+model_selection%>%
+  ggplot(aes(x=lag_sos,y=lag_sale,fill=AIC))+geom_tile()+
+  scale_fill_gradient(low='blue4',high='brown4')+
+  scale_x_continuous(breaks=6:12)+
+  scale_y_continuous(breaks=1:7)+
+  theme_bw()
+
+model_selection%>%
+  ggplot(aes(x=lag_sos,y=lag_sale,fill=BIC))+geom_tile()+
+  scale_fill_gradient(low='blue4',high='brown4')+
+  scale_x_continuous(breaks=6:12)+
+  scale_y_continuous(breaks=1:7)+
+  theme_bw()
+
+mod_best<-lm(log(sale)~sos_sodhyp+lag(sos_sodhyp, 6)+
+               lag(sos_sodhyp, 7)+lag(sos_sodhyp, 8)+
+               lag(log(sale),1)+lag(log(sale),2)+
+               lag(log(sale),3)+lag(log(sale),4),data=data_sodhyp)
+
+summary(mod_best)
+
+tsdiag(arima(mod_best$residuals,order=c(0,0,0)))
+layout(matrix(1:4,nrow=2))
+plot(mod_best)
+```
